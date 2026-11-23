@@ -1,0 +1,9 @@
+dist/
+pratinjau/
+pratinjau.log
+pratinjau.err.log
+.pid-pratinjau
+__pycache__/
+*.pyc
+.wrangler/
+node_modules/
