@@ -19,7 +19,7 @@ import shutil
 from html import escape
 from urllib.parse import quote
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ROOT, "assets-src")
@@ -128,17 +128,6 @@ def rincian(p, kelas="rincian"):
 
 
 # ------------------------------------------------------------------ gambar
-def potong(im, rasio, fokus=0.5):
-    w, h = im.size
-    if w / h > rasio:
-        baru = int(round(h * rasio))
-        kiri = int(round((w - baru) * fokus))
-        return im.crop((kiri, 0, kiri + baru, h))
-    baru = int(round(w / rasio))
-    atas = int(round((h - baru) * fokus))
-    return im.crop((0, atas, w, atas + baru))
-
-
 def webp(im, nama, mutu=84):
     im.save(os.path.join(IMG, nama), "WEBP", quality=mutu, method=6)
     return {"berkas": "assets/img/" + nama, "w": im.width, "h": im.height}
@@ -148,12 +137,29 @@ def sumber(nama):
     return Image.open(os.path.join(SRC, nama)).convert("RGB")
 
 
-def sumber_bersih(nama, potong_bawah=0.0):
-    """Foto kiriman pemilik: satu berkas membawa watermark generator AI di
-    sudut bawah, jadi bagian itu dibuang sebelum dipotong ke rasio apa pun."""
+_WATERMARK = (0.795, 0.912, 0.947, 0.982)
+_WATERMARK_GESER = 0.074
+
+
+def sumber_bersih(nama):
+    """Foto kiriman pemilik: dua foto botol membawa tulisan "Dola AI" di sudut
+    kanan bawah. Tulisan ditutup tambalan dari area bersih di atasnya, tepinya
+    dilembutkan supaya batas tambalan tidak terlihat."""
     im = sumber(nama)
-    if potong_bawah:
-        im = im.crop((0, 0, im.width, int(im.height * (1 - potong_bawah))))
+    w, h = im.size
+    kiri, atas, kanan, bawah = (
+        int(round(_WATERMARK[0] * w)), int(round(_WATERMARK[1] * h)),
+        int(round(_WATERMARK[2] * w)), int(round(_WATERMARK[3] * h)),
+    )
+    geser = int(round(_WATERMARK_GESER * h))
+    lebar, tinggi = kanan - kiri, bawah - atas
+    bulu = max(6, tinggi // 10)
+
+    tambalan = im.crop((kiri, atas + geser, kanan, bawah + geser))
+    mask = Image.new("L", (lebar, tinggi), 0)
+    ImageDraw.Draw(mask).rectangle(
+        (bulu, bulu, lebar - bulu, tinggi - bulu), fill=255)
+    im.paste(tambalan, (kiri, atas), mask.filter(ImageFilter.GaussianBlur(bulu)))
     return im
 
 
@@ -181,26 +187,33 @@ def logo_transparan(nama, sisi, tinta, mutu=92, margin=0.08):
     return kanvas.resize((sisi, sisi), Image.LANCZOS)
 
 
+def bidik(im, kotak, ukuran):
+    """Potong ke kotak pilihan, lalu kecilkan ke ukuran akhir. Angka kotaknya
+    dipilih supaya judul poster dan doodle pinggir tidak ikut masuk."""
+    return im.crop(kotak).resize(ukuran, Image.LANCZOS)
+
+
 def siapkan_gambar():
     if os.path.isdir(IMG):
         shutil.rmtree(IMG)
     os.makedirs(IMG, exist_ok=True)
     hasil = {}
 
-    cup_sun = sumber_bersih("mango-sago-sunlit.jpeg", 0.09)
-    cup_hand = sumber("mango-sago-hand.jpeg")
-    punch = sumber("fruit-punch.jpeg")
-    asinan = sumber("asinan-kiamboy.jpeg")
+    sago_jars = sumber("mango-sago-jars.jpeg")
+    asinan_cups = sumber("asinan-cups.jpeg")
+    asinan_bowl = sumber("asinan-bowl.jpeg")
+    punch_bottle = sumber_bersih("fruit-punch-bottle.jpeg")
+    punch_bottles = sumber_bersih("fruit-punch-bottles.jpeg")
 
     hasil["logo"] = webp(logo_transparan("logo-anyha.jpeg", 560, (18, 63, 42)), "logo.webp")
-    hasil["hero"] = webp(potong(cup_sun, 4 / 3, 0.45).resize((1100, 825), Image.LANCZOS), "hero.webp")
-    hasil["foto_cup"] = webp(potong(cup_hand, 4 / 3, 0.5).resize((720, 540), Image.LANCZOS), "mango-sago.webp")
-    hasil["foto_punch"] = webp(potong(punch, 4 / 3, 0.5).resize((720, 540), Image.LANCZOS), "fruit-punch.webp")
-    hasil["foto_asinan"] = webp(potong(asinan, 4 / 3, 0.5).resize((720, 540), Image.LANCZOS), "asinan-kiamboy.webp")
-    hasil["cerita"] = webp(potong(asinan, 1, 0.45).resize((820, 820), Image.LANCZOS), "cerita.webp")
-    hasil["proses"] = webp(potong(cup_hand, 1, 0.5).resize((820, 820), Image.LANCZOS), "proses.webp")
+    hasil["hero"] = webp(bidik(sago_jars, (151, 120, 1484, 1120), (1100, 825)), "hero.webp")
+    hasil["foto_cup"] = webp(bidik(sago_jars, (300, 380, 1100, 980), (720, 540)), "mango-sago.webp")
+    hasil["foto_punch"] = webp(bidik(punch_bottles, (0, 340, 1200, 1240), (720, 540)), "fruit-punch.webp")
+    hasil["foto_asinan"] = webp(bidik(asinan_cups, (300, 440, 1020, 980), (720, 540)), "asinan-kiamboy.webp")
+    hasil["cerita"] = webp(bidik(asinan_bowl, (100, 400, 1100, 1400), (820, 820)), "cerita.webp")
+    hasil["proses"] = webp(bidik(punch_bottle, (100, 230, 1100, 1230), (820, 820)), "proses.webp")
 
-    og = potong(cup_sun, 1200 / 630, 0.45).resize((1200, 630), Image.LANCZOS)
+    og = bidik(sago_jars, (200, 150, 1400, 780), (1200, 630))
     og.save(os.path.join(IMG, "og.jpg"), "JPEG", quality=84, optimize=True, progressive=True)
     hasil["og"] = {"berkas": "assets/img/og.jpg", "w": 1200, "h": 630}
 
@@ -438,8 +451,8 @@ def halaman_beranda(g):
       </div>
     </div>
     <figure class="hero__foto">
-      {gambar(g["hero"], "Mango Sago dengan lapisan mangga dan kuah susu di atas piring batu, disinari matahari pagi", prioritas=True)}
-      <button class="tombol-zoom" type="button" data-zoom="/{g['hero']['berkas']}" data-zoom-alt="Mango Sago dengan lapisan susu" aria-label="Perbesar foto Mango Sago">{IKON_ZOOM}</button>
+      {gambar(g["hero"], "Deretan cup Mango Sago berisi potongan mangga dengan sagu mutiara, di atas meja krem", prioritas=True)}
+      <button class="tombol-zoom" type="button" data-zoom="/{g['hero']['berkas']}" data-zoom-alt="Deretan cup Mango Sago berisi potongan mangga" aria-label="Perbesar foto Mango Sago">{IKON_ZOOM}</button>
       <div class="stiker-grup">
         <figcaption class="stiker">
           <span class="stiker__ikon" aria-hidden="true">A</span>
@@ -483,7 +496,7 @@ def halaman_beranda(g):
       <div class="aksi">{pesan("tombol", "Chat WhatsApp", ikon=True)}</div>
     </div>
     <figure>
-      {gambar(g["cerita"], "Asinan Kiamboy dalam cup bening berisi potongan buah dan kuah")}
+      {gambar(g["cerita"], "Empat cup Asinan Kiamboy berisi potongan buah, jeruk limau, dan kismis di atas kertas kraft")}
       <figcaption class="stiker stiker--kanan"><span class="stiker__teks"><strong>Asinan Kiamboy</strong><span>Segar, manis, pedas, asin, gurih</span></span></figcaption>
     </figure>
   </div>
@@ -523,7 +536,7 @@ def halaman_beranda(g):
       <ol class="langkah" style="margin-top:1.75rem">{langkah()}</ol>
     </div>
     <figure>
-      {gambar(g["proses"], "Mango Sago digenggam, tampak lapisan mangga dan sagu mutiara")}
+      {gambar(g["proses"], "Botol Fruit Punch dengan irisan jeruk dan nanas di dalamnya, diapit es batu")}
     </figure>
   </div>
 </section>
@@ -597,13 +610,13 @@ def isi_tentang(g):
     </div>
     <div class="unggul-grid">
       <figure style="margin:0">
-        {gambar(g["foto_cup"], "Mango Sago digenggam, tampak mangga dan sagu mutiara")}
+        {gambar(g["foto_cup"], "Deretan cup Mango Sago berisi potongan mangga dan sagu mutiara")}
       </figure>
       <figure style="margin:0">
-        {gambar(g["foto_punch"], "Botol Fruit Punch oranye dengan label Fruit Punch by Anyha")}
+        {gambar(g["foto_punch"], "Tiga botol Fruit Punch oranye berlabel Fruit Punch by Anyha di atas podium krem")}
       </figure>
       <figure style="margin:0">
-        {gambar(g["foto_asinan"], "Asinan Kiamboy dalam cup bening berisi potongan buah")}
+        {gambar(g["foto_asinan"], "Cup Asinan Kiamboy berisi potongan buah dengan jeruk limau dan kismis")}
       </figure>
     </div>
   </div>
