@@ -73,10 +73,13 @@ dist/                 hasil build, diabaikan git
 
 ## Deploy
 
-Live: https://dessertby-anyha.pages.dev
+**Ditutup sementara 25 November 2026.** Klien hanya meminta mockup, jadi proyek
+Pages `dessertby-anyha` dihapus; `dessertby-anyha.pages.dev` sekarang NXDOMAIN.
+Mockup yang tetap live: https://mockup-dessertbyanyha.pages.dev (`../web/`).
 
-Repo: `alifvir/Dessertby-Anyha`, proyek Pages `Dessertby-Anyha`, terhubung lewat
-Connect to Git. `git push` ke `main` = rilis otomatis.
+Repo: `alifvir/Dessertby-Anyha`. Kalau situs ini mau dirilis lagi, buat ulang
+proyek Pages dengan nama dan `repo_id` yang sama seperti di `DEPLOY.md` bagian 3,
+lalu `git push` ke `main` tetap menjadi rilis otomatis.
 
 Build command: `pip install -r requirements.txt && python build.py`
 Build output directory: `dist`

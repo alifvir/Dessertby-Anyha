@@ -7,15 +7,22 @@ Dokumen ini memuat semua yang sudah terbukti jalan untuk proyek ini. Kalau ada
 yang bertentangan dengan kenyataan di mesin, yang menang adalah hasil perintah,
 bukan dokumen ini. Perbarui dokumen ini setiap kali ada yang berubah.
 
-## 1. Keadaan sekarang (23 November 2026)
+## 1. Keadaan sekarang (25 November 2026)
+
+> **STATUS: DITUTUP SEMENTARA (25 November 2026).** Klien hanya meminta mockup,
+> jadi proyek Pages `dessertby-anyha` dihapus dan `dessertby-anyha.pages.dev`
+> sekarang NXDOMAIN. Repo GitHub, sumber, dan seluruh dokumen ini tetap utuh.
+> Yang dipakai sekarang hanya mockup: https://mockup-dessertbyanyha.pages.dev
+> (`../web/`). Untuk menghidupkan lagi situs asli, ikuti bagian 3 dengan nama
+> proyek dan `repo_id` yang sama di bawah — subdomainnya sudah bebas lagi.
 
 | Hal | Nilai |
 |---|---|
 | Folder kerja | `D:\Alif\Project\UMKM\dessertbyanyha\situs` |
 | Repo GitHub | https://github.com/alifvir/Dessertby-Anyha (publik, branch `main`) |
 | Repo id | `1468799015` |
-| Proyek Pages | `dessertby-anyha` |
-| URL live | https://dessertby-anyha.pages.dev |
+| Proyek Pages | `dessertby-anyha` (dihapus 25 Nov 2026) |
+| URL live | https://dessertby-anyha.pages.dev (mati, NXDOMAIN) |
 | Jenis proyek Pages | Connect to Git (BUKAN Direct Upload) |
 | Akun Cloudflare | `alifvir78@gmail.com`, account id `6974ed1876aaf81ed6adbc30ae874fde` |
 | Akun GitHub | `alifvir` |
@@ -264,6 +271,7 @@ Set-Location "D:\Alif\Project"; Remove-Item -Recurse -Force $tmp
 | Commit | Isi | Status |
 |---|---|---|
 | `f0afe4d` | Situs resmi satu arah (Kebun Buah), 5 halaman | success |
+| `26c5ebc` | Poster Asinan Kiamboy di bagian Tentang, cache gambar ber-hash | success, lalu project dihapus 25 Nov 2026 |
 
 ## 10. Jebakan yang sudah kena
 
