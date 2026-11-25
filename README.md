@@ -55,6 +55,10 @@ dist/                 hasil build, diabaikan git
 - Teks halaman: `build.py`, fungsi `halaman_beranda`, `isi_menu`, `isi_tentang`,
   `isi_kontak`.
 - Foto: ganti berkas di `assets-src/` dengan nama yang sama, lalu build.
+  `build.py` menyisipkan hash isi ke nama berkas hasil (mis.
+  `fruit-punch-6f54eddb.webp`), jadi URL gambar berubah tiap foto diganti dan
+  pengunjung tidak perlu membersihkan cache. `_headers` memberi gambar cache
+  satu tahun `immutable` — jangan kembalikan ke nama tetap tanpa mengubah itu.
   `mango-sago-sunlit.jpeg` membawa watermark generator AI di sudut bawah, dan
   `build.py` memotong 9 persen bagian bawah sebelum dipotong ke rasio.
 

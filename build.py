@@ -13,6 +13,7 @@ Hasil: dist/ siap dipasang di Cloudflare Pages.
 Jalankan: python build.py
 """
 
+import hashlib
 import json
 import os
 import shutil
@@ -31,6 +32,7 @@ MENU = json.load(open(os.path.join(ROOT, "data", "menu.json"), encoding="utf-8-s
 
 NAMA = SITE["nama"]
 USAHA = SITE.get("nama_usaha") or SITE["nama"]
+OG_BERKAS = "assets/img/og.jpg"
 
 FONTS = "family=Plus+Jakarta+Sans:wght@400;500;700;800"
 
@@ -128,8 +130,22 @@ def rincian(p, kelas="rincian"):
 
 
 # ------------------------------------------------------------------ gambar
+def berkas_berhash(nama):
+    """Sisipkan hash isi ke nama berkas di dalam IMG, supaya URL gambar berubah
+    setiap kali fotonya diganti. Tanpa ini pengunjung bisa memegang foto lama
+    sampai cache kedaluwarsa."""
+    jalur = os.path.join(IMG, nama)
+    with open(jalur, "rb") as f:
+        sidik = hashlib.md5(f.read()).hexdigest()[:8]
+    akar, ekst = os.path.splitext(nama)
+    baru = "%s-%s%s" % (akar, sidik, ekst)
+    os.replace(jalur, os.path.join(IMG, baru))
+    return baru
+
+
 def webp(im, nama, mutu=84):
     im.save(os.path.join(IMG, nama), "WEBP", quality=mutu, method=6)
+    nama = berkas_berhash(nama)
     return {"berkas": "assets/img/" + nama, "w": im.width, "h": im.height}
 
 
@@ -215,7 +231,7 @@ def siapkan_gambar():
 
     og = bidik(sago_jars, (200, 150, 1400, 780), (1200, 630))
     og.save(os.path.join(IMG, "og.jpg"), "JPEG", quality=84, optimize=True, progressive=True)
-    hasil["og"] = {"berkas": "assets/img/og.jpg", "w": 1200, "h": 630}
+    hasil["og"] = {"berkas": "assets/img/" + berkas_berhash("og.jpg"), "w": 1200, "h": 630}
 
     ikon = Image.new("RGB", (128, 128), (251, 247, 238))
     g = ImageDraw.Draw(ikon)
@@ -262,7 +278,7 @@ def kepala(judul, deskripsi, kanonikal, prioritas=None):
 <meta property="og:site_name" content="{escape(NAMA)}">
 <meta property="og:title" content="{escape(judul)}">
 <meta property="og:description" content="{escape(deskripsi)}">
-<meta property="og:image" content="/assets/img/og.jpg">
+<meta property="og:image" content="/{OG_BERKAS}">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -713,6 +729,8 @@ def main():
     os.makedirs(os.path.join(DIST, "assets", "js"), exist_ok=True)
 
     g = siapkan_gambar()
+    global OG_BERKAS
+    OG_BERKAS = g["og"]["berkas"]
 
     tulis("index.html", halaman_beranda(g))
     tulis("menu/index.html", halaman("menu", "Menu " + USAHA, DESKRIPSI["menu"], "/menu/", isi_menu(g)))
@@ -737,7 +755,7 @@ def main():
     else:
         tulis("robots.txt", "User-agent: *\nAllow: /\n")
 
-    tulis("_headers", "/assets/img/*\n  Cache-Control: public, max-age=604800\n/assets/css/*\n  Cache-Control: public, max-age=0, must-revalidate\n/assets/js/*\n  Cache-Control: public, max-age=0, must-revalidate\n")
+    tulis("_headers", "/assets/img/*\n  Cache-Control: public, max-age=31536000, immutable\n/assets/css/*\n  Cache-Control: public, max-age=0, must-revalidate\n/assets/js/*\n  Cache-Control: public, max-age=0, must-revalidate\n/assets/favicon.png\n  Cache-Control: public, max-age=86400\n")
 
     ukuran = jumlah = halaman_total = 0
     for akar, _d, berkas in os.walk(DIST):

@@ -283,3 +283,10 @@ Set-Location "D:\Alif\Project"; Remove-Item -Recurse -Force $tmp
 6. **`curl` di PowerShell mengembalikan array.** Wajib `-join "`n"`. Tanpa itu,
    `-match` mengembalikan `System.Object[]` dan pemeriksaan isi terlihat gagal
    padahal halamannya benar.
+7. **Foto lama tetap tampil di HP pengunjung walau deploy sukses.** Dulu gambar
+   memakai nama tetap dengan `max-age=604800`, jadi browser memegang salinan lama
+   sampai 7 hari. Sekarang `build.py` menyisipkan hash isi ke nama berkas
+   (`fruit-punch-6f54eddb.webp`) dan `_headers` memakai `max-age=31536000,
+   immutable`. Kalau suatu saat nama gambar dikembalikan ke bentuk tetap, cache
+   gambar WAJIB diturunkan lagi. Ciri masalah ini: HTML live sudah versi baru,
+   tetapi foto di HP masih lama.
