@@ -217,16 +217,18 @@ def siapkan_gambar():
 
     sago_jars = sumber("mango-sago-jars.jpeg")
     asinan_cups = sumber("asinan-cups.jpeg")
-    asinan_bowl = sumber("asinan-bowl.jpeg")
     punch_bottle = sumber_bersih("fruit-punch-bottle.jpeg")
     punch_bottles = sumber_bersih("fruit-punch-bottles.jpeg")
+    asinan_poster = sumber("asinan-poster.jpeg")
 
     hasil["logo"] = webp(logo_transparan("logo-anyha.jpeg", 560, (18, 63, 42)), "logo.webp")
     hasil["hero"] = webp(bidik(sago_jars, (151, 120, 1484, 1120), (1100, 825)), "hero.webp")
     hasil["foto_cup"] = webp(bidik(sago_jars, (300, 380, 1100, 980), (720, 540)), "mango-sago.webp")
     hasil["foto_punch"] = webp(bidik(punch_bottles, (0, 340, 1200, 1240), (720, 540)), "fruit-punch.webp")
     hasil["foto_asinan"] = webp(bidik(asinan_cups, (300, 440, 1020, 980), (720, 540)), "asinan-kiamboy.webp")
-    hasil["cerita"] = webp(bidik(asinan_bowl, (100, 400, 1100, 1400), (820, 820)), "cerita.webp")
+    hasil["cerita"] = webp(asinan_poster.resize(
+        (820, round(820 * asinan_poster.height / asinan_poster.width)),
+        Image.LANCZOS), "cerita.webp")
     hasil["proses"] = webp(bidik(punch_bottle, (100, 230, 1100, 1230), (820, 820)), "proses.webp")
 
     og = bidik(sago_jars, (200, 150, 1400, 780), (1200, 630))
@@ -512,8 +514,7 @@ def halaman_beranda(g):
       <div class="aksi">{pesan("tombol", "Chat WhatsApp", ikon=True)}</div>
     </div>
     <figure>
-      {gambar(g["cerita"], "Empat cup Asinan Kiamboy berisi potongan buah, jeruk limau, dan kismis di atas kertas kraft")}
-      <figcaption class="stiker stiker--kanan"><span class="stiker__teks"><strong>Asinan Kiamboy</strong><span>Segar, manis, pedas, asin, gurih</span></span></figcaption>
+      {gambar(g["cerita"], "Poster Asinan Kiamboy by Anyha berisi cup asinan buah dengan jeruk limau dan kismis")}
     </figure>
   </div>
 </section>
